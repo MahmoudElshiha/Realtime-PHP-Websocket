@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sockeon WebSocket Test Client</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            color: #e2e8f0;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 10px;
+        }
+
+        .status {
+            display: inline-block;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+
+        .status.disconnected {
+            background: rgba(239, 68, 68, 0.2);
+            color: #fca5a5;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+
+        .status.connected {
+            background: rgba(34, 197, 94, 0.2);
+            color: #86efac;
+            border: 1px solid rgba(34, 197, 94, 0.3);
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+
+        .connection-controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        input[type="text"] {
+            flex: 1;
+            padding: 12px 16px;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            color: #e2e8f0;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        input[type="text"]:focus {
+            outline: none;
+            border-color: #3b82f6;
+            background: rgba(255, 255, 255, 0.12);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        button {
+            padding: 12px 24px;
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+            border: none;
+            border-radius: 8px;
+            color: white;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        button.disconnect {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+        }
+
+        button.disconnect:hover {
+            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4);
+        }
+
+        .messages {
+            height: 400px;
+            overflow-y: auto;
+            margin-bottom: 15px;
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .message {
+            padding: 10px 12px;
+            margin-bottom: 8px;
+            border-radius: 8px;
+            line-height: 1.5;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .message.system {
+            background: rgba(100, 116, 139, 0.2);
+            border-left: 3px solid #64748b;
+            color: #cbd5e1;
+        }
+
+        .message.welcome {
+            background: rgba(34, 197, 94, 0.2);
+            border-left: 3px solid #22c55e;
+            color: #86efac;
+        }
+
+        .message.chat {
+            background: rgba(59, 130, 246, 0.2);
+            border-left: 3px solid #3b82f6;
+            color: #bfdbfe;
+        }
+
+        .message.error {
+            background: rgba(239, 68, 68, 0.2);
+            border-left: 3px solid #ef4444;
+            color: #fca5a5;
+        }
+
+        .message.typing {
+            background: rgba(168, 85, 247, 0.2);
+            border-left: 3px solid #a855f7;
+            color: #e9d5ff;
+        }
+
+        .message-controls {
+            display: flex;
+            gap: 10px;
+        }
+
+        .typing-indicator {
+            font-size: 0.85rem;
+            color: #a855f7;
+            margin-top: 5px;
+            min-height: 20px;
+        }
+
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Sockeon WebSocket Chat</h1>
+            <span class="status disconnected" id="status">Disconnected</span>
+        </div>
+
+        <div class="card">
+            <div class="connection-controls">
+                <input type="text" id="serverUrl" value="ws://localhost:8080" placeholder="WebSocket Server URL">
+                <button id="connectBtn" onclick="connect()">Connect</button>
+                <button id="disconnectBtn" class="disconnect" onclick="disconnect()"
+                    style="display: none;">Disconnect</button>
+            </div>
+
+            <div class="messages" id="messages"></div>
+
+            <div class="typing-indicator" id="typingIndicator"></div>
+
+            <div class="message-controls">
+                <input type="text" id="messageInput" placeholder="Type your message..." disabled>
+            messagesEl.scrollTop = messagesEl.scrollHeight;
+        }
+
+        function updateStatus(connected) {
+            if (connected) {
+                statusEl.textContent = 'Connected';
+                statusEl.className = 'status connected';
+                messageInput.disabled = false;
+                sendBtn.disabled = false;
+                connectBtn.style.display = 'none';
+                disconnectBtn.style.display = 'inline-block';
+                serverUrlInput.disabled = true;
+            } else {
+                statusEl.textContent = 'Disconnected';
+                statusEl.className = 'status disconnected';
+                messageInput.disabled = true;
+                sendBtn.disabled = true;
+                connectBtn.style.display = 'inline-block';
+                disconnectBtn.style.display = 'none';
+                serverUrlInput.disabled = false;
+            }
+        }
+
+        function connect() {
+            const url = serverUrlInput.value;
+
+            try {
+                ws = new WebSocket(url);
+
+                ws.onopen = () => {
+                    addMessage(`Connected to ${url}`, 'system');
+                    updateStatus(true);
+                };
+
+                ws.onmessage = (event) => {
+                    try {
+                        const data = JSON.parse(event.data);
+                        handleServerMessage(data);
+                    } catch (e) {
+                        addMessage(`Raw message: ${event.data}`, 'system');
+                    }
+                };
+
+                ws.onerror = (error) => {
+                    addMessage('Connection error occurred', 'error');
+                    console.error('WebSocket error:', error);
+                };
+
+                ws.onclose = () => {
+                    addMessage('Connection closed', 'system');
+                    updateStatus(false);
+                    ws = null;
+                };
+            } catch (e) {
+                addMessage(`Failed to connect: ${e.message}`, 'error');
+            }
+        }
+
+        function disconnect() {
+            if (ws) {
+                ws.close();
+            }
+        }
+
+        function handleServerMessage(data) {
+            const { event, data: payload } = data;
+
+            switch (event) {
+                case 'welcome':
+                    clientId = payload.clientId;
+                    addMessage(`${payload.message} (Your ID: ${clientId})`, 'welcome');
+                    break;
+
+                case 'user.connected':
+                    addMessage(payload.message, 'system');
+                    break;
+
+                case 'user.disconnected':
+                    addMessage(payload.message, 'system');
+                    break;
+
+                case 'chat.message':
+                    const time = new Date(payload.timestamp * 1000).toLocaleTimeString();
+                    addMessage(`[${time}] User ${payload.from}: ${payload.message}`, 'chat');
+                    break;
+
+                case 'user.typing':
+                    if (payload.clientId !== clientId) {
+                        if (payload.typing) {
+                            typingIndicator.textContent = `User ${payload.clientId} is typing...`;
+                        } else {
+                            typingIndicator.textContent = '';
+                        }
+                    }
+                    break;
+
+                case 'error':
+                    addMessage(`Error: ${payload.message}`, 'error');
+                    break;
+
+                default:
+                    addMessage(`Unknown event: ${event}`, 'system');
+            }
+        }
+
+        function sendMessage() {
+            const message = messageInput.value.trim();
+
+            if (!message || !ws) return;
+
+            const payload = {
+                event: 'chat.message',
+                data: { message }
+            };
+
+            ws.send(JSON.stringify(payload));
+            messageInput.value = '';
+
+            // Send typing stopped
+            sendTypingStatus(false);
+        }
+
+        function sendTypingStatus(isTyping) {
+            if (!ws) return;
+
+            const payload = {
+                event: 'user.typing',
+                data: { typing: isTyping }
+            };
+
+            ws.send(JSON.stringify(payload));
+        }
+
+        // Handle typing indicator
+        messageInput.addEventListener('input', () => {
+            sendTypingStatus(true);
+
+            clearTimeout(typingTimeout);
+            typingTimeout = setTimeout(() => {
+                sendTypingStatus(false);
+            }, 1000);
+        });
+
+        // Handle Enter key
+        messageInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        });
+
+        // Add initial message
+        addMessage('Enter server URL and click Connect to start', 'system');
+    </script>
+</body>
+
+</html>
