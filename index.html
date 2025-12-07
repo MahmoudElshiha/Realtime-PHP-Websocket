@@ -236,6 +236,52 @@
 
             <div class="message-controls">
                 <input type="text" id="messageInput" placeholder="Type your message..." disabled>
+                <button id="sendBtn" onclick="sendMessage()" disabled>Send</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let ws = null;
+        let clientId = null;
+        let typingTimeout = null;
+
+        const statusEl = document.getElementById('status');
+        const messagesEl = document.getElementById('messages');
+        const messageInput = document.getElementById('messageInput');
+        const sendBtn = document.getElementById('sendBtn');
+        const connectBtn = document.getElementById('connectBtn');
+        const disconnectBtn = document.getElementById('disconnectBtn');
+        const serverUrlInput = document.getElementById('serverUrl');
+        const typingIndicator = document.getElementById('typingIndicator');
+
+        // Parse URL parameter
+        function getUrlParameter(name) {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get(name);
+        }
+
+        // Initialize server URL from query parameter or auto-detect
+        function initializeServerUrl() {
+            const wsUrlParam = getUrlParameter('ws');
+            if (wsUrlParam) {
+                serverUrlInput.value = wsUrlParam;
+                addMessage(`WebSocket URL loaded from query parameter: ${wsUrlParam}`, 'system');
+            } else if (window.location.protocol !== 'file:') {
+                // Auto-detect WebSocket URL when served via HTTP/HTTPS
+                const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+                const host = window.location.host;
+                const autoUrl = `${protocol}//${host}`;
+                serverUrlInput.value = autoUrl;
+                addMessage(`Auto-detected WebSocket URL: ${autoUrl}`, 'system');
+            }
+        }
+
+        function addMessage(text, type = 'system') {
+            const msg = document.createElement('div');
+            msg.className = `message ${type}`;
+            msg.textContent = text;
+            messagesEl.appendChild(msg);
             messagesEl.scrollTop = messagesEl.scrollHeight;
         }
 
@@ -386,10 +432,12 @@
             }
         });
 
-        // Add initial message
-        addMessage('Enter server URL and click Connect to start', 'system');
+        // Initialize and add initial message
+        initializeServerUrl();
+        if (!getUrlParameter('ws') && window.location.protocol === 'file:') {
+            addMessage('Enter server URL and click Connect to start', 'system');
+        }
     </script>
 </body>
-
 
 </html>
