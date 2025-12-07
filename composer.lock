@@ -1,0 +1,79 @@
+{
+    "_readme": [
+        "This file locks the dependencies of your project to a known state",
+        "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
+        "This file is @generated automatically"
+    ],
+    "content-hash": "df102317c22a6c97a52cee6aad131486",
+    "packages": [
+        {
+            "name": "sockeon/sockeon",
+            "version": "v2.2.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/sockeon/sockeon.git",
+                "reference": "4ac057380ee649ded2110ed3e77c5cfccb4e552f"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/sockeon/sockeon/zipball/4ac057380ee649ded2110ed3e77c5cfccb4e552f",
+                "reference": "4ac057380ee649ded2110ed3e77c5cfccb4e552f",
+                "shasum": ""
+            },
+            "require": {
+                "ext-openssl": "*",
+                "ext-sockets": "*",
+                "php": ">=8.0"
+            },
+            "require-dev": {
+                "pestphp/pest": "^3.8",
+                "phpstan/phpstan": "^2.1"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Sockeon\\Sockeon\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "xentixar",
+                    "email": "xentixar@gmail.com"
+                }
+            ],
+            "description": "Framework-agnostic PHP WebSocket and HTTP server library with attribute-based routing and support for namespaces and rooms.",
+            "keywords": [
+                "Socket",
+                "event-driven",
+                "framework-agnostic",
+                "http",
+                "https",
+                "laravel",
+                "php",
+                "realtime",
+                "symfony",
+                "websocket"
+            ],
+            "support": {
+                "issues": "https://github.com/sockeon/sockeon/issues",
+                "source": "https://github.com/sockeon/sockeon/tree/v2.2.0"
+            },
+            "time": "2025-11-29T12:52:49+00:00"
+        }
+    ],
+    "packages-dev": [],
+    "aliases": [],
+    "minimum-stability": "stable",
+    "stability-flags": {},
+    "prefer-stable": false,
+    "prefer-lowest": false,
+    "platform": {
+        "php": ">=8.0"
+    },
+    "platform-dev": {},
+    "plugin-api-version": "2.6.0"
+}
